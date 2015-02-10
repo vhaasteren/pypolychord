@@ -8,10 +8,12 @@ module calculate_module
         use utils_module, only: logzero
         implicit none
         interface
-            function loglikelihood(theta,phi,context)
-                double precision, intent(in),  dimension(:) :: theta
-                double precision, intent(out),  dimension(:) :: phi
-                integer,          intent(in)                 :: context
+            function loglikelihood(nDims, theta, nDerived, phi, context)
+		integer,          intent(in)                 :: nDims
+		integer,          intent(in)                 :: nDerived
+		double precision, intent(in), dimension(nDims) ::theta
+		double precision, intent(out),  dimension(nDerived) :: phi
+		integer,          intent(in)                 :: context
                 double precision :: loglikelihood
             end function
         end interface
@@ -28,7 +30,7 @@ module calculate_module
             point(settings%p0:settings%p1) = hypercube_to_physical( point(settings%h0:settings%h1),priors )
 
             ! Calculate the likelihood and store it in the last index
-            point(settings%l0) = loglikelihood( point(settings%p0:settings%p1), point(settings%d0:settings%d1),settings%context)
+            point(settings%l0) = loglikelihood(settings%nDims, point(settings%p0:settings%p1), settings%nDerived, point(settings%d0:settings%d1),settings%context)
 
             ! accumulate the number of likelihood calls that we've made
             point(settings%nlike) = point(settings%nlike)+1
@@ -42,10 +44,12 @@ module calculate_module
         use utils_module, only: logzero
         implicit none
         interface
-            function loglikelihood(theta,phi,context)
-                double precision, intent(in),  dimension(:) :: theta
-                double precision, intent(out),  dimension(:) :: phi
-                integer,          intent(in)                 :: context
+            function loglikelihood(nDims, theta, nDerived, phi, context)
+		integer,          intent(in)                 :: nDims
+		integer,          intent(in)                 :: nDerived
+		double precision, intent(in), dimension(nDims) ::theta
+		double precision, intent(out),  dimension(nDerived) :: phi
+		integer,          intent(in)                 :: context
                 double precision :: loglikelihood
             end function
         end interface
@@ -94,10 +98,12 @@ module calculate_module
         use settings_module, only: program_settings
         implicit none
         interface
-            function loglikelihood(theta,phi,context)
-                double precision, intent(in),  dimension(:) :: theta
-                double precision, intent(out),  dimension(:) :: phi
-                integer,          intent(in)                 :: context
+            function loglikelihood(nDims, theta, nDerived, phi, context)
+		integer,          intent(in)                 :: nDims
+		integer,          intent(in)                 :: nDerived
+		double precision, intent(in), dimension(nDims) ::theta
+		double precision, intent(out),  dimension(nDerived) :: phi
+		integer,          intent(in)                 :: context
                 double precision :: loglikelihood
             end function
         end interface
@@ -119,7 +125,7 @@ module calculate_module
         do i=1,settings%nDims
             delta_vec = 0
             delta_vec(i) = delta
-            gradloglike(i) = ( loglikelihood(theta+delta_vec,derived,context) - loglike )/ delta
+            gradloglike(i) = ( loglikelihood(settings%nDims, theta+delta_vec,settings%nDerived, derived,context) - loglike )/ delta
         end do
 
     end function gradloglike

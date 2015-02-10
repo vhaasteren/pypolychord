@@ -28,11 +28,14 @@ module nested_sampling_module
 
         implicit none
 
+
         interface
-            function loglikelihood(theta,phi,context)
-                double precision, intent(in),  dimension(:) :: theta
-                double precision, intent(out),  dimension(:) :: phi
-                integer,          intent(in)                 :: context
+            function loglikelihood(nDims, theta, nDerived, phi, context)
+		integer,          intent(in)                 :: nDims
+		integer,          intent(in)                 :: nDerived
+		double precision, intent(in), dimension(nDims) ::theta
+		double precision, intent(out),  dimension(nDerived) :: phi
+		integer,          intent(in)                 :: context
                 double precision :: loglikelihood
             end function
         end interface

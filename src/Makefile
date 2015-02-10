@@ -22,7 +22,8 @@ OBJECTS =                    \
 		  likelihoods.o      \
 		  chordal_sampling.o \
 		  generate.o         \
-		  nested_sampling.o
+		  nested_sampling.o  \
+          InitSampler.o
 else
 
 # No parallelisation
@@ -43,7 +44,8 @@ OBJECTS =                    \
 		  likelihoods.o      \
 		  chordal_sampling.o \
 		  generate.o         \
-		  nested_sampling.o
+		  nested_sampling.o  \
+          InitSampler.o
 
 endif
 
@@ -58,7 +60,7 @@ ifeq ($(COMPILER_TYPE),ifort)
 # default flags
 # --------------
 # fpp  : perform preprocessing
-FCFLAGS += -fpp 
+FCFLAGS += -fpp -fPIC
 
 ifdef DEBUG
 # Debugging mode
@@ -96,7 +98,7 @@ ifeq ($(COMPILER_TYPE),gfortran)
 # --------------
 # free-line-length-none : turn of line length limitation (why is this not a default??)
 # cpp  					: perform preprocessing
-FCFLAGS += -ffree-line-length-none -cpp 
+FCFLAGS += -ffree-line-length-none -cpp -fPIC
 
 ifdef DEBUG
 # Debugging mode
@@ -122,7 +124,9 @@ endif
 AR = ar r
 endif
 
-
+# For ifort:
+#LINKLIB = ld -shared
+LINKLIB = gfortran -ggdb -dynamiclib -fPIC -undefined suppress -flat_namespace
 
 
 
@@ -130,12 +134,13 @@ endif
 
 
 # List of executables to be built within the package
-PROGRAMS = libchord.a main
+PROGRAMS = libchord.a
 
 # "make" builds all
 all: $(PROGRAMS)
 
-
+libchord.so: $(OBJECTS)
+	$(LINKLIB) -o $(LIBS) $@ $^
 
 libchord.a: $(OBJECTS)
 	$(AR) $@ $^

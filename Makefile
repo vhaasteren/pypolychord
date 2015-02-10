@@ -16,16 +16,19 @@ export COMPILER_TYPE
 
 default: all
 
+libchord.so: ./src/*90
+	cd ./src && make libchord.so && cd ..
+
 libchord.a: ./src/*90
-	cd ./src && make libchord.a
+	cd ./src && make libchord.a && cd ..
 
 main: ./src/*90
-	cd ./src && make libchord.a && make main
+	cd ./src && make libchord.a && make libchord.so && make main && cd ..
 
 clean:
-	cd ./src && make clean
-	
-veryclean:
-	rm main && cd ./src && make veryclean
+	cd ./src && make clean && cd ..
 
-all: main
+veryclean:
+	rm main && cd ./src && make veryclean && cd ..
+
+all: libchord.a libchord.so
