@@ -37,7 +37,6 @@ from ctypes import *
 import ctypes
 
 def run(LogLikelihood, \
-        Prior, \
 	n_dims, \
         prior_array, \
         n_live=500, \
