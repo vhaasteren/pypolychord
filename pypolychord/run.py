@@ -41,29 +41,42 @@ def run(LogLikelihood, \
         prior_array, \
         n_live=500, \
         n_chords=1, \
-        root="chains/pc-"):
+        output_basename="chains/1-"):
 	"""
 	Runs PolyChord
+
+        @param LogLikelihood:   Log-Likelihood function definition
+        @param n_dims:          Number of dimensions
+        @param prior_array:     Minimum and maximum bound of the parameters
+        @param n_live:          Number of live points
+        @param n_chords:        Number of chords
+        @param output_basename: File root, prefix for all output files
 	
 	"""
 
-        loglike_type = CFUNCTYPE(c_double, c_int, POINTER(c_double), c_int, \
+        loglike_type = CFUNCTYPE(c_double, POINTER(c_int), POINTER(c_double), c_int, \
                 POINTER(c_double), c_void_p)
 
         def loglike(n_dims, theta, nderived, phi, context):
-            theta_pointer = cast(theta, POINTER(c_double))
-            phi_pointer = cast(phi, POINTER(c_double))
-            theta_arr = np.frombuffer(theta_pointer.contents)
-            phi_arr = np.frombuffer(phi_pointer.contents)
+            ndim = n_dims[0]
 
-            args = [n_dims, theta_arr, phi_arr]
+            theta_pointer = cast(theta, POINTER(c_double * ndim))
+            phi_pointer = cast(phi, POINTER(c_double * ndim))
+            theta_arr = np.frombuffer(theta_pointer.contents, count=ndim)
+            phi_arr = np.frombuffer(phi_pointer.contents, count=ndim)
+
+            # Other way to convert
+            #theta_arr = np.ctypeslib.as_array((c_double * ndim).from_address(addressof(theta_pointer.contents)))
+            #phi_arr = np.ctypeslib.as_array((c_double * ndim).from_address(addressof(phi_pointer.contents)))
+
+            args = [ndim, theta_arr, phi_arr]
 
             return LogLikelihood(*args)
 
         c_double_p = ctypes.POINTER(ctypes.c_double)
         prior_array_p = prior_array.ctypes.data_as(c_double_p)
         
-        Froot = root + ' ' * (100 - len(root))
+        Froot = output_basename + ' ' * (100 - len(output_basename))
         lib.__initsampler_MOD_dosamplingfromc(loglike_type(loglike),
                 byref(c_int(n_dims)), byref(c_int(0)), byref(c_int(n_live)),
                 byref(c_int(n_chords)),
