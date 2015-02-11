@@ -65,10 +65,6 @@ def run(LogLikelihood, \
             theta_arr = np.frombuffer(theta_pointer.contents, count=ndim)
             phi_arr = np.frombuffer(phi_pointer.contents, count=ndim)
 
-            # Other way to convert
-            #theta_arr = np.ctypeslib.as_array((c_double * ndim).from_address(addressof(theta_pointer.contents)))
-            #phi_arr = np.ctypeslib.as_array((c_double * ndim).from_address(addressof(phi_pointer.contents)))
-
             args = [ndim, theta_arr, phi_arr]
 
             return LogLikelihood(*args)
