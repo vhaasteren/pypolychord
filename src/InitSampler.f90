@@ -6,7 +6,7 @@ module InitSampler
     ! ~~~~~~~ Loaded Modules ~~~~~~~
 
 
-
+    use grades_module,            only: allocate_grades
     use priors_module
     use settings_module,          only: program_settings,initialise_settings,STR_LENGTH
     use random_module,            only: initialise_random
@@ -18,7 +18,7 @@ module InitSampler
 
     contains
 
-subroutine DoSamplingFromC(Lfunc, nDims, nDerived, Nlive, Nchords, PArray, Froot, context)
+subroutine DoSamplingFromC(Lfunc, nDims, nDerived, Nlive, Nchords, PArray, Froot, context, output, do_grades, maxgrade, grades, grade_repeats, hypercube_indices, physical_indices)
 
     ! ~~~~~~~ Local Variable Declaration ~~~~~~~
     implicit none
@@ -32,13 +32,50 @@ subroutine DoSamplingFromC(Lfunc, nDims, nDerived, Nlive, Nchords, PArray, Froot
     !PArray is the (2*Ndims) array containing priors, this has only been tested using uniform priors in polychord
     !Froot is the file root
     !context is a pointer to a c struct
+    !A length 5 double array containing output parameters
+
+!!!!!!!!!!!!!Grade parameters - Allows polychord to operate a hierarchial likelihood evaluation!!!!!!!!!!!!!!!!!!!!!!!
+
+    !do_grades specificies whether to 'grade' the parameters by their evalulation speed
+    !max_grade is an integer that specificies the maximum grade assigned to a parameter
+    !grades is an Ndim integer array that gives the grade for each parameter
+    !grade_repeats is an N_maxgrade integer array that specifies how many chords to evaluate for each grade
+    !hypercube_indices is an Ndim integer array that lists the order of the parameters in the hypercube 
+    !physical_indices lists the order of the parameters in physical space
     
+
+        !The grading of the parameters doesn't need to be in order, but you do need to
+        !put the parameters in order from slow to fast in the unit hypercube. This is
+        !done when you initialise the priors, you should choose the array
+        !'hypercube_indices' to arrange your parameters in order in the hypercube.
+
+        !e.g. if you have 5 parameters; 3 fast, 2 slow which are taken into the
+        !likelihood as:
+        !1 2 3 4 5
+        !F S F F S
+
+
+        !You would initialise grades as:
+
+        !settings%do_grades=.true.
+        !call allocate_grades(settings%grades,(/2,1,2,2,1/) )
+        !settings%grades%num_repeats(1)= 1
+        !settings%grades%num_repeats(2)= 5
+
+
+
+        !then when you initialise your priors, the parameter 'hypercube_indices' should
+        !be
+        !(/ 2 5 1 3 4 /)
+        !and I imagine that you'd want them in the original order in the physical space,
+        !so 'physical_indices' should be
+        !(/ 1 2 3 4 5 /)
 
 
     
     !Input parameters for initialisation
-    integer nDims, nDerived, Nlive, Nchords, context
-    double precision PArray(2*nDims)
+    integer nDims, nDerived, Nlive, Nchords, context, do_grades, maxgrade, grades(nDims), grade_repeats(maxgrade), hypercube_indices(nDims), physical_indices(nDims)
+    double precision PArray(2*nDims), output(5)
     character(STR_LENGTH) :: Froot
     
     
@@ -57,8 +94,6 @@ subroutine DoSamplingFromC(Lfunc, nDims, nDerived, Nlive, Nchords, PArray, Froot
 
     double precision, allocatable, dimension(:) :: minimums 
     double precision, allocatable, dimension(:) :: maximums
-    integer, allocatable, dimension(:) :: hypercube_indices
-    integer, allocatable, dimension(:) :: physical_indices
     integer :: i
 
 
@@ -127,19 +162,18 @@ subroutine DoSamplingFromC(Lfunc, nDims, nDerived, Nlive, Nchords, PArray, Froot
     ! (v) Set up priors
     allocate(minimums(settings%nDims))
     allocate(maximums(settings%nDims))
-    allocate(physical_indices(settings%nDims))
-    allocate(hypercube_indices(settings%nDims))
+    !allocate(physical_indices(settings%nDims))
+    !allocate(hypercube_indices(settings%nDims))
 
     !minimums=0.5-1d-2*50
     !maximums=0.5+1d-2*50
     minimums=PArray(1:nDims)
     maximums=PArray(nDims+1:2*nDims)
 
-    do i=1,settings%nDims
-        physical_indices(i)  = i
-        hypercube_indices(i) = i
-    end do
-
+    !do i=1,settings%nDims
+    !    physical_indices(i)  = i
+    !    hypercube_indices(i) = i
+    !end do
     call initialise_uniform(priors(1),hypercube_indices,physical_indices,minimums,maximums)
 
 
@@ -147,7 +181,13 @@ subroutine DoSamplingFromC(Lfunc, nDims, nDerived, Nlive, Nchords, PArray, Froot
     
     
 
-
+        if(do_grades .eq. 1) then
+             settings%do_grades=.true.
+             call allocate_grades(settings%grades,grades)
+             do i=1,maxgrade
+                     settings%grades%num_repeats(i)= grade_repeats(i)
+             end do
+        end if
 
 
 
@@ -238,7 +278,8 @@ subroutine DoSamplingFromC(Lfunc, nDims, nDerived, Nlive, Nchords, PArray, Froot
     call MPI_FINALIZE(mpierror)
 #endif
 
-    print *, "output = ", output_info
+
+        output=output_info
 
 end subroutine
 
