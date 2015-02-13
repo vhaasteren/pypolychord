@@ -18,7 +18,7 @@ def samplefromprior(cube, ndim, nparams):
         cube[ii] = -10.0 + cube[ii] * 20.0
 
 if __name__ == "__main__":
-    ndim = 50
+    ndim = 256
 
     pm.run(loglik, samplefromprior, ndim,
             importance_nested_sampling = False,
@@ -26,7 +26,7 @@ if __name__ == "__main__":
             n_clustering_params = None,
             resume = False,
             verbose = True,
-            n_live_points = 1000,
+            n_live_points = 2000,
             init_MPI = False,
             multimodal = True,
             outputfiles_basename='chains/1-',
