@@ -1,5 +1,5 @@
 # Whether to run in debugging mode (leave blank if running in optimised mode
-DEBUG = 
+DEBUG =  
 export DEBUG
 
 # Whether to use MPI or not (leave blank if running without MPI)
@@ -31,4 +31,4 @@ clean:
 veryclean:
 	rm main && cd ./src && make veryclean && cd ..
 
-all: libchord.a libchord.so
+all: libchord.a

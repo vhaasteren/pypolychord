@@ -25,6 +25,7 @@
 
 double LogLike(int &ndim, double *theta, int &nderived, double *phi, void *context)
 {
+
 	double chi = 1.0;
 	double lnew=0;
 	int i;
@@ -68,12 +69,47 @@ int main(int argc, char *argv[])
 	
 	void *context = 0;				// not required by PolyChord, any additional information user wants to pass
 
-	
+	double *output = new double[5];
+
+	/////////////////////////Sort Grade stuff////////////////////////////	
+
+	int do_grades = 0;
+	int *grades = new int[Ndim];
+	for(int i = 0; i < Ndim; i++){
+		grades[i] = 1;
+	}
+
+	int maxgrade = 1;
+	int *grade_repeats = new int[maxgrade];
+	for(int i = 0; i < maxgrade; i++){
+		grade_repeats[i] = 1;
+	}
+
+
+	int *hypercube_indices = new int[Ndim];
+	int *physical_indices = new int[Ndim];
+
+	//Set indices, note this is fortran convention -> starts from 1/////
+	for(int i = 0; i < Ndim; i++){
+		hypercube_indices[i] = i+1;
+		physical_indices[i] = i+1;
+	}
 	
 	// calling PolyChord
 	
-	chord::Sample(LogLike, Ndim, nDerived, nLive, Nchords,  PriorsArray, Froot, context);	
+	chord::Sample(LogLike, Ndim, nDerived, nLive, Nchords,  PriorsArray, Froot, context, output, do_grades, maxgrade, grades, grade_repeats, hypercube_indices, physical_indices);	
 
+
+	printf("Sampling finished, output:\n");
+	for(int i = 0; i < 5; i++){
+		printf("Output %i %g \n", i, output[i]);
+	}
+
+	delete[] output;
+	delete[] grades;
+	delete[] grade_repeats;
+	delete[] hypercube_indices;
+	delete[] physical_indices;
 	delete[] PriorsArray;
 }
 
