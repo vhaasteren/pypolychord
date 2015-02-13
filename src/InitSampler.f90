@@ -238,7 +238,7 @@ subroutine DoSamplingFromC(Lfunc, nDims, nDerived, Nlive, Nchords, PArray, Froot
     call MPI_FINALIZE(mpierror)
 #endif
 
-    print *, "nCalls = ", output_info
+    print *, "output = ", output_info
 
 end subroutine
 
