@@ -31,4 +31,4 @@ clean:
 veryclean:
 	rm main && cd ./src && make veryclean && cd ..
 
-all: libchord.a
+all: libchord.a libchord.so
